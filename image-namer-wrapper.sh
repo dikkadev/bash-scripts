@@ -1,0 +1,1 @@
+/home/dikka/projs/image-namer/image-namer-wrapper.sh
