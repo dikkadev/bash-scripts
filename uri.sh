@@ -1,6 +1,25 @@
 #!/bin/bash
 
 uri() {
+  local copy=false
+
+  # Parse flags
+  local OPTIND=1
+  while getopts "ch" opt; do
+    case "$opt" in
+      c) copy=true ;;
+      h)
+        echo "Usage: uri [-c] [-h] [path]"
+        echo "  Generate a browser-ready file:// URL for a path."
+        echo "  -c  Copy URL to clipboard"
+        echo "  -h  Show this help"
+        return 0
+        ;;
+      *) return 1 ;;
+    esac
+  done
+  shift $((OPTIND - 1))
+
   local input="${1:-.}"
 
   # Resolve to absolute path
@@ -22,13 +41,16 @@ uri() {
     # WSL path: /home/dikka/... → file://wsl.localhost/Ubuntu/home/dikka/...
     local distro
     distro="$(sed -n 's/^ID=//p' /etc/os-release 2>/dev/null)"
-    # Capitalize first letter to match wsl.localhost convention
     distro="${distro^}"
     url="file://wsl.localhost/${distro}${abs}"
   fi
 
-  # URL-encode spaces and common special chars (but not / : .)
   url="${url// /%20}"
 
-  echo "$url"
+  if $copy; then
+    printf '%s' "$url" | clip.exe
+    echo "$url (copied)"
+  else
+    echo "$url"
+  fi
 }
